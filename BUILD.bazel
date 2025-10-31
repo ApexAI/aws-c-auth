@@ -1,0 +1,52 @@
+load("@apex//tools/bazel/rules_ros_pkg:defs.bzl", "ros_pkg")
+
+cc_library(
+    name = "aws_c_auth",
+    srcs = glob(
+        ["source/**/*.c"],
+    ),
+    hdrs = glob(
+        [
+            "include/aws/**/*.h",
+        ],
+    ),
+    includes = ["."],
+    strip_include_prefix = "include",
+    visibility = ["//visibility:public"],
+    deps = [
+        "@aws_c_http",
+        "@aws_c_io",
+        "@aws_c_sdkutils",
+    ],
+)
+
+ros_pkg(
+    name = "aws_c_auth_pkg",
+    bst_substitute_with = select({
+        "@apex//common/build_system_transfer:use_cmake_find_package": {
+            "name": "aws-c-auth",
+            "cmake_find_package": """\
+find_package(aws-c-auth REQUIRED)
+if (NOT TARGET {pkg_name}::aws_c_auth)
+    add_library({pkg_name}::aws_c_auth ALIAS AWS::aws-c-auth)
+endif()
+""",
+        },
+        "//conditions:default": {
+        },
+    }),
+    cc_libraries = [":aws_c_auth"],
+    description = "C99 library implementation of AWS client-side authentication: standard " +
+                  "credentials providers and signing.",
+    license = "Apex.AI Proprietary License",
+    maintainer_email = "support@apex.ai",
+    maintainer_name = "Apex.AI",
+    pkg_name = "aws_c_auth_vendor",
+    version = "0.7.16",
+    visibility = ["//visibility:public"],
+    deps = [
+        "@aws_c_http//:aws_c_http_pkg",
+        "@aws_c_io//:aws_c_io_pkg",
+        "@aws_c_sdkutils//:aws_c_sdkutils_pkg",
+    ],
+)
